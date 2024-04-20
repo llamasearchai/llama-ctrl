@@ -1,0 +1,82 @@
+name: Llama Control CI
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'llama-ctrl-pkg/**'
+      - '.github/workflows/llama_ctrl_ci.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'llama-ctrl-pkg/**'
+      - '.github/workflows/llama_ctrl_ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    # Optional: Set up services like Redis if needed for tests
+    # - name: Start Redis
+    #   uses: supercharge/redis-github-action@1.8.0
+    #   with:
+    #     redis-version: '7'
+
+    - name: Install dependencies
+      working-directory: ./llama-ctrl-pkg
+      run: |
+        python -m pip install --upgrade pip
+        # Install with dev dependencies
+        pip install -e ".[dev]"
+        # Install optional dependencies if tests require them, e.g.:
+        # pip install -e ".[kubernetes,docker]"
+
+    - name: Lint with Ruff
+      working-directory: ./llama-ctrl-pkg
+      run: ruff check .
+
+    - name: Format with Black
+      working-directory: ./llama-ctrl-pkg
+      run: black --check .
+
+    - name: Sort imports with isort
+      working-directory: ./llama-ctrl-pkg
+      run: isort --check-only .
+
+    - name: Type check with MyPy
+      working-directory: ./llama-ctrl-pkg
+      run: mypy src/
+
+    - name: Run tests with Pytest
+      working-directory: ./llama-ctrl-pkg
+      run: pytest --cov=src --cov-report=xml
+      # env:
+      #   # Add env vars needed for tests, e.g., connection strings
+      #   REDIS_URL: redis://localhost:6379/0
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        slug: ${{ github.repository }}
+        fail_ci_if_error: false
+        working-directory: ./llama-ctrl-pkg
+        verbose: true 

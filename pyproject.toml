@@ -1,0 +1,113 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "llama-ctrl"
+version = "0.1.0"
+description = "Control plane, configuration management, and service coordination for LlamaAI Ecosystem"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}, # Replace
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Distributed Computing",
+    "Topic :: System :: Systems Administration",
+]
+dependencies = [
+    # Core utilities
+    "pydantic>=1.10.0",
+    "typer[all]>=0.9.0", # For CLI commands
+    "loguru>=0.7.0",
+    "python-dotenv>=1.0.0",
+
+    # Communication/Coordination
+    "redis[hiredis]>=4.5.0", # Potential use for state/messaging
+    "fastapi>=0.95.0", # If exposing a control API
+    "uvicorn[standard]>=0.21.0", # If exposing a control API
+    "httpx>=0.24.0", # For calling other service APIs
+    # "kubernetes>=26.1.0", # If interacting with Kubernetes
+    # "docker>=6.0.0", # If interacting with Docker
+    # "aiohttp>=3.8.0", # Alternative async HTTP client
+
+    # Configuration Loading
+    "pyyaml>=6.0",
+
+    # Internal Dependencies (Services this might control)
+    # "llamasearchai-pkg>=0.2.0", # Example: Might need to know API spec
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.3.1",
+    "pytest-cov>=4.1.0",
+    "pytest-asyncio", # If testing async code
+    "black>=23.3.0",
+    "isort>=5.12.0",
+    "mypy>=1.2.0",
+    "ruff>=0.0.260",
+    "pre-commit>=3.3.1",
+    "pytest-mock>=3.10.0",
+    "httpx", # For testing API calls
+]
+docs = [
+    "mkdocs>=1.4.2",
+    "mkdocs-material>=9.1.6",
+    "mkdocstrings[python]>=0.20.0",
+]
+kubernetes = ["kubernetes>=26.1.0"]
+docker = ["docker>=6.0.0"]
+all = [
+    "llama-ctrl[dev,docs,kubernetes,docker]"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/yourusername/llama-ctrl-pkg"
+"Bug Tracker" = "https://github.com/yourusername/llama-ctrl-pkg/issues"
+"Documentation" = "https://yourusername.github.io/llama-ctrl-pkg/"
+
+[project.scripts]
+llama-ctrl = "llama_ctrl.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/llama_ctrl"]
+
+[tool.black]
+line-length = 88
+target-version = ["py38"]
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "C", "B"]
+ignore = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+asyncio_mode = "auto" 
