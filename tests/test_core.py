@@ -1,58 +1,51 @@
-"""Basic tests for the llama-ctrl package and CLI."""
-
+"""Tests for core functionality"""
 import pytest
-from typer.testing import CliRunner
-
-# Try importing the package and the CLI app
-try:
-    import llama_ctrl
-    from llama_ctrl.cli import app as cli_app
-except ImportError as e:
-    pytest.fail(f"Failed to import llama_ctrl or cli_app: {e}", pytrace=False)
-
-runner = CliRunner()
+from llama_ctrl.core import Client
 
 
-def test_import():
-    """Test that the main package can be imported."""
-    assert llama_ctrl is not None
+def test_client_initialization():
+    """Test that client initializes properly"""
+    client = Client()
+    assert client is not None
+    assert client.config == {}
+    
+    # Test with config
+    config = {"timeout": 60}
+    client = Client(config=config)
+    assert client.config == config
 
 
-def test_version():
-    """Test that the package has a version attribute."""
-    assert hasattr(llama_ctrl, "__version__")
-    assert isinstance(llama_ctrl.__version__, str)
+def test_client_process():
+    """Test processing functionality"""
+    client = Client()
+    result = client.process("test data")
+    assert isinstance(result, dict)
+    assert "result" in result
+    assert "input" in result
+    assert result["input"] == "test data"
 
 
-def test_cli_version():
-    """Test the CLI --version option."""
-    result = runner.invoke(cli_app, ["--version"])
-    assert result.exit_code == 0
-    assert llama_ctrl.__version__ in result.stdout
+def test_client_status():
+    """Test status functionality"""
+    client = Client()
+    status = client.get_status()
+    assert isinstance(status, dict)
+    assert "status" in status
 
 
-def test_cli_status_placeholder():
-    """Test the placeholder status command."""
-    result = runner.invoke(cli_app, ["status"])
-    assert result.exit_code == 0
-    assert "Checking status" in result.stdout
-    assert "(Placeholder: Implement actual status check)" in result.stdout
-
-
-def test_cli_apply_placeholder():
-    """Test the placeholder apply command requires --file."""
-    result_no_file = runner.invoke(cli_app, ["apply"])
-    assert result_no_file.exit_code != 0  # Should fail without --file
-    assert "Missing option '--file' / '-f'" in result_no_file.stdout
-
-    # Test with a dummy file path (doesn't need to exist for placeholder)
-    result_with_file = runner.invoke(cli_app, ["apply", "--file", "dummy.yaml"])
-    assert result_with_file.exit_code == 0
-    assert "Applying configuration from: dummy.yaml" in result_with_file.stdout
-    assert "(Placeholder: Implement actual config application)" in result_with_file.stdout
-
-
-# Add more tests later:
-# - Test configuration loading logic
-# - Test interactions with mocked services (via httpx mocks or similar)
-# - Test CLI commands with various arguments and options
+def test_get_version():
+    """Test getting version"""
+    client = Client()
+    version = client.get_version()
+    assert isinstance(version, str)
+    assert version == "0.1.0"
+    
+    
+def test_get_info():
+    """Test getting info"""
+    client = Client()
+    info = client.get_info()
+    assert isinstance(info, dict)
+    assert "name" in info
+    assert "version" in info
+    assert "features" in info
